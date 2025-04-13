@@ -21,6 +21,13 @@ jobs:
 
     runs-on: ${{matrix.os}}
 
+    env:
+      QT_FLAGS: >
+        -static -optimize-size -ltcg -release
+        -no-feature-accessibility -no-feature-sql -no-feature-printsupport -no-feature-network -no-feature-testlib
+        -no-feature-assistant -no-feature-designer -no-feature-qdoc -no-feature-distancefieldgenerator
+        -no-feature-kmap2qmap -no-feature-pixeltool -no-feature-qdbus -no-feature-qev
+
     steps:
       - uses: actions/checkout@v4
       - name: Find Qt version
@@ -41,7 +48,7 @@ jobs:
         run: |
           git clone https://code.qt.io/qt/qt5.git qt -b '${{env.QT_VERSION}}'
           cd qt
-          perl init-repository.pl -f --module-subset=qtbase,qtshadertools,qtmultimedia,qttools
+          perl init-repository.pl -f --module-subset=qtbase,qtshadertools,qtmultimedia,qttools,qttranslations
 
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -54,7 +61,7 @@ jobs:
         run: |
           mkdir qt_build
           cd qt_build
-          ..\qt\configure.bat -release -static -optimize-size -prefix "..\qt_static" -no-feature-accessibility
+          ..\qt\configure.bat -prefix "..\qt_static" ${{ env.QT_FLAGS }}
           cmake --build . --parallel 4
           cmake --install .
 
@@ -63,7 +70,7 @@ jobs:
         run: |
           mkdir qt_build
           cd qt_build
-          ../qt/configure -static -release -optimize-size -prefix "../qt_static" -no-feature-accessibility -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          ../qt/configure -prefix "../qt_static" ${{ env.QT_FLAGS }} -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           cmake --build . --parallel 3
           cmake --install .
 

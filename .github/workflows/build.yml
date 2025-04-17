@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{matrix.os}}
 
     env:
-      QT_FLAGS: >
+      QT_FLAGS: >-
         -static -optimize-size -ltcg -release
         -no-feature-accessibility -no-feature-sql -no-feature-printsupport -no-feature-network -no-feature-testlib
         -no-feature-assistant -no-feature-designer -no-feature-qdoc -no-feature-distancefieldgenerator

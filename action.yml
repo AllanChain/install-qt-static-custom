@@ -15,7 +15,7 @@ runs:
         esac
         qt_version=${VERSION_TAG#*v}
         qt_version=${qt_version%-*}
-        curl -LO https://github.com/AllanChain/install-qt-static/releases/download/${VERSION_TAG}/qt-${qt_version}-static-${os_name}.zip
+        curl -LO https://github.com/AllanChain/install-qt-static-custom/releases/download/${VERSION_TAG}/qt-${qt_version}-static-${os_name}.zip
         7z x qt-*.zip
         if [[ $os_name == windows* ]]; then
           echo "$(pwd -W | sed 's,/,\\,g')\qt_static\bin" >> $GITHUB_PATH

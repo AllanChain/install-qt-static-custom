@@ -12,11 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
-        arch: [x64, x64_arm64]
-        exclude:
-        - os: macos-latest
-          arch: x64_arm64
+        os: [windows-latest, windows-11-arm, macos-latest]
+        include:
+        - os: windows-latest
+          arch: x64
+        - os: windows-11-arm
+          arch: arm64
 
     runs-on: ${{matrix.os}}
 
@@ -58,7 +59,7 @@ jobs:
         run: |
           ..\qt\configure.bat -list-features
           $configArgs = Get-Content ..\feature-flags.txt | Where-Object { $_.Trim() -ne '' }
-          ..\qt\configure.bat @configArgs -- -DCMAKE_CXX_FLAGS="/await:strict"
+          ..\qt\configure.bat @configArgs -- -DCMAKE_CXX_FLAGS="/await:strict /MACHINE:${{ matrix.arch }}"
           cmake --build . --parallel 4
 
       - name: Build Qt (macOS)

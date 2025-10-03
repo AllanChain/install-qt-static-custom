@@ -13,15 +13,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
-        include:
-        - os: windows-latest
-          os-caption: windows
-          arch: x64
-        - os: windows-latest
-          os-caption: windows-arm
-          arch: x64_arm64
+        arch: [x64, x64_arm64]
+        exclude:
         - os: macos-latest
-          os-caption: macos
+          arch: x64_arm64
 
     runs-on: ${{matrix.os}}
 
@@ -44,7 +39,8 @@ jobs:
       - uses: seanmiddleditch/gha-setup-ninja@v5
       - name: Clone Qt repo
         run: |
-          git clone https://code.qt.io/qt/qt5.git qt -b '${{env.QT_VERSION}}'
+          git clone https://github.com/qt/qt5.git qt -b '${{env.QT_VERSION}}'
+          mkdir qt_build
           cd qt
           perl init-repository.pl -f --module-subset=qtbase,qtsvg,qtshadertools,qtmultimedia,qttools,qttranslations
 
@@ -56,29 +52,26 @@ jobs:
 
       - name: Build Qt (Windows)
         if: contains(matrix.os, 'windows')
+        working-directory: qt_build
         env:
           CL: /MP # Build with multiple processes
         run: |
-          mkdir qt_build
-          cd qt_build
           ..\qt\configure.bat -list-features
           $configArgs = Get-Content ..\feature-flags.txt | Where-Object { $_.Trim() -ne '' }
           ..\qt\configure.bat @configArgs -- -DCMAKE_CXX_FLAGS="/await:strict"
           cmake --build . --parallel 4
-          cmake --install .
 
       - name: Build Qt (macOS)
         if: contains(matrix.os, 'macos')
+        working-directory: qt_build
         run: |
-          mkdir qt_build
-          cd qt_build
           ../qt/configure -list-features
           ../qt/configure $(cat ../feature-flags.txt) -- -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           cmake --build . --parallel 3
-          cmake --install .
 
       - name: Package binaries
         run: |
+          cmake --install .
           7z a qt-${{env.QT_VERSION}}-static-${{matrix.os-caption}}.zip qt_static
 
       - uses: actions/upload-artifact@v4
